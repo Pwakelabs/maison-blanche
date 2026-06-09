@@ -1,4 +1,5 @@
 import { Clock, MapPin, Phone } from 'lucide-react';
+import salonInterior from '../assets/image.png';
 
 export default function About() {
   return (
@@ -6,7 +7,7 @@ export default function About() {
       {/* Hero Image */}
       <section className="relative h-[50vh] md:h-[60vh]">
         <img
-          src="https://images.pexels.com/photos/3992870/pexels-photo-3992870.jpeg?auto=compress&cs=tinysrgb&w=1920"
+          src={salonInterior}
           alt="Maison Blanche salon interior"
           className="w-full h-full object-cover"
         />
