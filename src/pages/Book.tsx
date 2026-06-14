@@ -46,6 +46,11 @@ const TIME_SLOTS = [
   '3:00 PM', '4:00 PM', '5:00 PM', '6:00 PM'
 ];
 
+function parsePrice(priceStr: string): number | null {
+  const match = priceStr.match(/\$(\d+)/);
+  return match ? parseInt(match[1], 10) : null;
+}
+
 export default function Book() {
   const [step, setStep] = useState(1);
   const [submitted, setSubmitted] = useState(false);
@@ -68,6 +73,8 @@ export default function Book() {
   const selectedService = SERVICES.flatMap(s => s.items).find(
     item => item.name === form.service
   );
+
+  const serviceTotal = selectedService ? parsePrice(selectedService.price) : null;
 
   if (submitted) {
     return (
@@ -255,6 +262,15 @@ export default function Book() {
                 <p className="font-sans text-xs opacity-40 mt-2">
                   {form.stylist === 'any' ? 'No stylist preference' : `With ${STYLISTS.find(s => s.id === form.stylist)?.name}`}
                 </p>
+                {serviceTotal !== null && (
+                  <div className="mt-4 pt-4 border-t border-charcoal/10">
+                    <div className="flex justify-between items-center">
+                      <span className="font-sans text-sm opacity-60">Estimated Total</span>
+                      <span className="font-serif text-xl">${serviceTotal}</span>
+                    </div>
+                    <p className="font-sans text-xs opacity-40 mt-1">Taxes calculated at appointment</p>
+                  </div>
+                )}
               </div>
 
               <div>
