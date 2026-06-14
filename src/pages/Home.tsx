@@ -7,7 +7,7 @@ const STYLISTS = [
     role: 'Founder & Senior Stylist',
     specialty: 'Precision cuts, balayage',
     years: 18,
-    image: 'https://images.pexels.com/photos/3756523/pexels-photo-3756523.jpeg?auto=compress&cs=tinysrgb&w=400',
+    image: 'https://images.pexels.com/photos/1036623/pexels-photo-1036623.jpeg?auto=compress&cs=tinysrgb&w=400',
   },
   {
     name: 'Sophie Laurent',

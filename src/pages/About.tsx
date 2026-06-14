@@ -45,7 +45,7 @@ export default function About() {
           <div className="grid md:grid-cols-2 gap-12 items-center">
             <div className="aspect-[3/4] overflow-hidden">
               <img
-                src="https://images.pexels.com/photos/3756523/pexels-photo-3756523.jpeg?auto=compress&cs=tinysrgb&w=800"
+                src="https://images.pexels.com/photos/1036623/pexels-photo-1036623.jpeg?auto=compress&cs=tinysrgb&w=800"
                 alt="Camille Renard, founder"
                 className="w-full h-full object-cover"
               />
