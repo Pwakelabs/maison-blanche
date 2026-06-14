@@ -1,33 +1,81 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { X } from 'lucide-react';
 
-const SERVICES = [
+interface ServiceItem {
+  name: string;
+  price: number;
+  duration: string;
+  from?: boolean;
+}
+
+interface ServiceCategory {
+  category: string;
+  items: ServiceItem[];
+}
+
+const SERVICES: ServiceCategory[] = [
   {
     category: 'Cut & Style',
     items: [
-      { name: "Women's Cut & Style", price: '$95', duration: '60 min' },
-      { name: "Men's Cut & Style", price: '$65', duration: '45 min' },
-      { name: 'Fringe Trim', price: '$30', duration: '15 min' },
-      { name: 'Blowout', price: '$75', duration: '45 min' },
+      { name: "Women's Cut & Style", price: 95, duration: '60 min' },
+      { name: "Men's Cut & Style", price: 65, duration: '45 min' },
+      { name: "Children's Cut (12 & under)", price: 40, duration: '30 min' },
+      { name: 'Fringe / Bang Trim', price: 25, duration: '15 min' },
+      { name: 'Blowout & Style', price: 75, duration: '45 min' },
+      { name: 'Special Occasion Updo', price: 120, duration: '75 min' },
+      { name: 'Braids & Twist Styles', price: 85, duration: '60 min' },
     ],
   },
   {
     category: 'Color',
     items: [
-      { name: 'Single Process', price: '$150', duration: '90 min' },
-      { name: 'Full Highlights', price: '$225', duration: '150 min' },
-      { name: 'Partial Highlights', price: '$175', duration: '120 min' },
-      { name: 'Balayage', price: '$275', duration: '180 min' },
-      { name: 'Toner', price: '$60', duration: '30 min' },
-      { name: 'Color Correction', price: 'From $300', duration: 'Consultation' },
+      { name: 'Single Process Color', price: 150, duration: '90 min' },
+      { name: 'Root Touch-Up', price: 95, duration: '60 min' },
+      { name: 'Full Highlights', price: 225, duration: '150 min' },
+      { name: 'Partial Highlights', price: 175, duration: '120 min' },
+      { name: 'Balayage', price: 275, duration: '180 min' },
+      { name: 'Ombre', price: 250, duration: '180 min' },
+      { name: 'Toner / Gloss', price: 60, duration: '30 min' },
+      { name: 'Color Correction', price: 300, duration: 'Consultation', from: true },
     ],
   },
   {
     category: 'Treatment',
     items: [
-      { name: 'Deep Conditioning', price: '$55', duration: '30 min' },
-      { name: 'Keratin Smoothing', price: '$250', duration: '180 min' },
-      { name: 'Scalp Treatment', price: '$70', duration: '45 min' },
+      { name: 'Deep Conditioning Mask', price: 55, duration: '30 min' },
+      { name: 'Keratin Smoothing', price: 250, duration: '180 min' },
+      { name: 'Scalp Detox Treatment', price: 70, duration: '45 min' },
+      { name: 'Olaplex Repair Add-On', price: 45, duration: '20 min' },
+      { name: 'Bond Building Treatment', price: 85, duration: '40 min' },
+      { name: 'Hydrating Oil Treatment', price: 50, duration: '25 min' },
+    ],
+  },
+  {
+    category: 'Texturizing',
+    items: [
+      { name: 'Permanent Wave (Perm)', price: 200, duration: '150 min' },
+      { name: 'Chemical Relaxer', price: 180, duration: '120 min' },
+      { name: 'Japanese Straightening', price: 350, duration: '240 min' },
+    ],
+  },
+  {
+    category: 'Brows & Lashes',
+    items: [
+      { name: 'Brow Shaping & Tint', price: 35, duration: '20 min' },
+      { name: 'Brow Lamination', price: 55, duration: '30 min' },
+      { name: 'Lash Lift & Tint', price: 75, duration: '45 min' },
+      { name: 'Lash Extensions (Classic)', price: 150, duration: '90 min' },
+      { name: 'Lash Extensions (Volume)', price: 225, duration: '120 min' },
+    ],
+  },
+  {
+    category: 'Finishing Add-Ons',
+    items: [
+      { name: 'Flat Iron Finish', price: 30, duration: '15 min' },
+      { name: 'Curling Iron Finish', price: 30, duration: '15 min' },
+      { name: 'Scalp Massage (15 min)', price: 25, duration: '15 min' },
+      { name: 'Beard Trim & Shape', price: 25, duration: '15 min' },
     ],
   },
 ];
@@ -43,38 +91,46 @@ const STYLISTS = [
 const TIME_SLOTS = [
   '9:00 AM', '10:00 AM', '11:00 AM',
   '12:00 PM', '1:00 PM', '2:00 PM',
-  '3:00 PM', '4:00 PM', '5:00 PM', '6:00 PM'
+  '3:00 PM', '4:00 PM', '5:00 PM', '6:00 PM',
 ];
-
-function parsePrice(priceStr: string): number | null {
-  const match = priceStr.match(/\$(\d+)/);
-  return match ? parseInt(match[1], 10) : null;
-}
 
 export default function Book() {
   const [step, setStep] = useState(1);
   const [submitted, setSubmitted] = useState(false);
+  const [selectedServices, setSelectedServices] = useState<string[]>([]);
   const [form, setForm] = useState({
     name: '',
     email: '',
     phone: '',
-    service: '',
     stylist: 'any',
     date: '',
     time: '',
     notes: '',
   });
 
+  const allItems = SERVICES.flatMap(s => s.items);
+  const hasFromPrice = selectedServices.some(name => {
+    const item = allItems.find(i => i.name === name);
+    return item?.from;
+  });
+
+  const total = selectedServices.reduce((sum, name) => {
+    const item = allItems.find(i => i.name === name);
+    return sum + (item?.price ?? 0);
+  }, 0);
+
+  const toggleService = (name: string) => {
+    setSelectedServices(prev =>
+      prev.includes(name)
+        ? prev.filter(n => n !== name)
+        : [...prev, name]
+    );
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitted(true);
   };
-
-  const selectedService = SERVICES.flatMap(s => s.items).find(
-    item => item.name === form.service
-  );
-
-  const serviceTotal = selectedService ? parsePrice(selectedService.price) : null;
 
   if (submitted) {
     return (
@@ -107,7 +163,7 @@ export default function Book() {
           Book Your Appointment
         </h1>
         <p className="font-sans text-sm font-light tracking-wide opacity-50 text-center mb-16">
-          Select your service, then choose a time that works for you.
+          Select your services, then choose a time that works for you.
         </p>
 
         {/* Progress Steps */}
@@ -136,40 +192,68 @@ export default function Book() {
                     {section.category}
                   </h2>
                   <div className="space-y-3">
-                    {section.items.map((item) => (
-                      <button
-                        key={item.name}
-                        type="button"
-                        onClick={() => setForm({ ...form, service: item.name })}
-                        className={`w-full flex justify-between items-center p-4 border transition-colors ${
-                          form.service === item.name
-                            ? 'border-charcoal bg-charcoal/5'
-                            : 'border-charcoal/10 hover:border-charcoal/30'
-                        }`}
-                      >
-                        <div className="text-left">
-                          <p className="font-sans text-sm font-light">{item.name}</p>
-                          <p className="font-sans text-xs opacity-40 mt-1">{item.duration}</p>
-                        </div>
-                        <span className="font-serif text-lg font-light opacity-70">
-                          {item.price}
-                        </span>
-                      </button>
-                    ))}
+                    {section.items.map((item) => {
+                      const isSelected = selectedServices.includes(item.name);
+                      return (
+                        <button
+                          key={item.name}
+                          type="button"
+                          onClick={() => toggleService(item.name)}
+                          className={`w-full flex justify-between items-center p-4 border transition-colors ${
+                            isSelected
+                              ? 'border-charcoal bg-charcoal/5'
+                              : 'border-charcoal/10 hover:border-charcoal/30'
+                          }`}
+                        >
+                          <div className="text-left flex items-center gap-3">
+                            <div className={`w-4 h-4 rounded-sm border flex items-center justify-center transition-colors ${
+                              isSelected ? 'bg-charcoal border-charcoal' : 'border-charcoal/30'
+                            }`}>
+                              {isSelected && (
+                                <svg width="10" height="8" viewBox="0 0 10 8" fill="none">
+                                  <path d="M1 4L3.5 6.5L9 1" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-cream"/>
+                                </svg>
+                              )}
+                            </div>
+                            <div>
+                              <p className="font-sans text-sm font-light">{item.name}</p>
+                              <p className="font-sans text-xs opacity-40 mt-1">{item.duration}</p>
+                            </div>
+                          </div>
+                          <span className="font-serif text-lg font-light opacity-70">
+                            {item.from ? 'From ' : ''}${item.price}
+                          </span>
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
               ))}
 
-              <div className="pt-8 text-center">
-                <button
-                  type="button"
-                  disabled={!form.service}
-                  onClick={() => setStep(2)}
-                  className="font-serif text-sm tracking-[0.2em] uppercase border border-charcoal px-10 py-3 text-charcoal hover:bg-charcoal hover:text-cream transition-colors duration-300 disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:text-charcoal"
-                >
-                  Continue
-                </button>
-              </div>
+              {/* Selected services summary bar */}
+              {selectedServices.length > 0 && (
+                <div className="sticky bottom-6 bg-charcoal text-cream p-4 flex justify-between items-center z-10">
+                  <div>
+                    <p className="font-sans text-xs opacity-60">
+                      {selectedServices.length} service{selectedServices.length > 1 ? 's' : ''} selected
+                    </p>
+                    <p className="font-serif text-lg">${total}{hasFromPrice ? '*' : ''}</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setStep(2)}
+                    className="font-serif text-sm tracking-[0.2em] uppercase bg-cream text-charcoal px-8 py-2 hover:bg-cream/90 transition-colors duration-300"
+                  >
+                    Continue
+                  </button>
+                </div>
+              )}
+
+              {selectedServices.length === 0 && (
+                <div className="pt-8 text-center">
+                  <p className="font-sans text-sm opacity-40 mb-4">Select at least one service to continue</p>
+                </div>
+              )}
             </div>
           )}
 
@@ -254,23 +338,49 @@ export default function Book() {
             <div className="space-y-10">
               {/* Summary */}
               <div className="bg-[#F5F4F0] p-6 mb-8">
-                <p className="font-serif text-lg font-light mb-2">{form.service}</p>
-                <p className="font-sans text-sm opacity-50">
-                  {form.date && new Date(form.date + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
-                  {form.time && ` at ${form.time}`}
-                </p>
-                <p className="font-sans text-xs opacity-40 mt-2">
-                  {form.stylist === 'any' ? 'No stylist preference' : `With ${STYLISTS.find(s => s.id === form.stylist)?.name}`}
-                </p>
-                {serviceTotal !== null && (
-                  <div className="mt-4 pt-4 border-t border-charcoal/10">
-                    <div className="flex justify-between items-center">
-                      <span className="font-sans text-sm opacity-60">Estimated Total</span>
-                      <span className="font-serif text-xl">${serviceTotal}</span>
-                    </div>
-                    <p className="font-sans text-xs opacity-40 mt-1">Taxes calculated at appointment</p>
+                <h3 className="font-serif text-sm tracking-[0.15em] uppercase text-charcoal opacity-50 mb-4">
+                  Your Services
+                </h3>
+                <div className="space-y-3">
+                  {selectedServices.map(name => {
+                    const item = allItems.find(i => i.name === name);
+                    if (!item) return null;
+                    return (
+                      <div key={name} className="flex justify-between items-center">
+                        <div>
+                          <p className="font-sans text-sm font-light">{item.name}</p>
+                          <p className="font-sans text-xs opacity-40">{item.duration}</p>
+                        </div>
+                        <span className="font-serif text-base font-light opacity-70">
+                          {item.from ? 'From ' : ''}${item.price}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                <div className="mt-4 pt-4 border-t border-charcoal/10">
+                  <div className="flex justify-between items-center">
+                    <span className="font-sans text-sm opacity-60">
+                      Estimated Total{hasFromPrice ? '*' : ''}
+                    </span>
+                    <span className="font-serif text-xl">${total}{hasFromPrice ? '*' : ''}</span>
                   </div>
-                )}
+                  <p className="font-sans text-xs opacity-40 mt-1">
+                    * Starting price only &mdash; final cost may vary{hasFromPrice ? '. ' : ''}
+                    Taxes & additional fees calculated at appointment.
+                  </p>
+                </div>
+
+                <div className="mt-4 pt-3 border-t border-charcoal/5">
+                  <p className="font-sans text-sm opacity-50">
+                    {form.date && new Date(form.date + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
+                    {form.time && ` at ${form.time}`}
+                  </p>
+                  <p className="font-sans text-xs opacity-40 mt-1">
+                    {form.stylist === 'any' ? 'No stylist preference' : `With ${STYLISTS.find(s => s.id === form.stylist)?.name}`}
+                  </p>
+                </div>
               </div>
 
               <div>
